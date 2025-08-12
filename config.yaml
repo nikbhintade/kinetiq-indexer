@@ -5,16 +5,18 @@ description: Greeter indexer
 #addresses. Now you can share a single handler/abi/event definitions
 #for contracts across multiple chains
 contracts:
-  - name: KHYPE
-    abi_file_path: ./abis/khype.json
-    handler: ./src/KhypeEventHandlers.ts
-    events:
-      - event: Transfer
+    - name: KHYPE
+      abi_file_path: ./abis/khype.json
+      handler: ./src/KhypeEventHandlers.ts
+      events:
+          - event: Transfer
 networks:
-  - id: 645749 # Hyperliquid Mainnet
-    start_block: 0
-    contracts:
-      - name: KHYPE 
-        address: 0xfD739d4e423301CE9385c1fb8850539D657C296D
+    - id: 645749 # Hyperliquid Mainnet
+      start_block: 0
+      contracts:
+          - name: KHYPE
+            address: 0xfD739d4e423301CE9385c1fb8850539D657C296D
+          - name: StakingManager
+            address: 
 unordered_multichain_mode: true
 preload_handlers: true

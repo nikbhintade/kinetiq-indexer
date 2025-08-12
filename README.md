@@ -1,23 +1,49 @@
-## Envio Greeter Template
+## Kinetiq Indexer
 
-*Please refer to the [documentation website](https://docs.envio.dev) for a thorough guide on all [Envio](https://envio.dev) indexer features*
+Indexer for Kinetiq written with HyperIndex by Envio.
 
-### Run
+Tasks:
 
-```bash
-pnpm dev
+-   [x] Track kHYPE user balances
+-   [ ] Track LST exchange rate with contract events (timeseries updated in db every min, not after every transaction I think that much accuracy is good enough for this dashboard, other calculations that depend on it will have error but I don't think that is an error. I will put a warning on the dashboard about this)
+-   [ ] Delegated amount to validators
+-   [ ] Withdrawal queue & confirmed withdrawals
+-   [ ] Track kHYPE user balances
+
+Event Handlers:
+
+-   kHYPE
+    -   [x] `Transfer`
+-   Staking Manager
+    -   [ ] `StakeReceived`
+    -   [ ] `WithdrawalQueued`
+    -   [ ] `WithdrawalCancelled`
+    -   [ ] `WithdrawalConfirmed`
+    -   [ ] `Delegate`
+    -   [ ] `ValidatorWithdrawal`
+
+```solidity
+    event StakeReceived(address indexed staking, address indexed staker, uint256 amount);
+    event WithdrawalQueued(
+        address indexed staking,
+        address indexed user,
+        uint256 indexed withdrawalId,
+        uint256 kHYPEAmount,
+        uint256 hypeAmount,
+        uint256 feeAmount
+    );
+    event WithdrawalConfirmed(address indexed user, uint256 indexed withdrawalId, uint256 amount);
+    event WithdrawalCancelled(
+        address indexed user, uint256 indexed withdrawalId, uint256 amount, uint256 totalCancelled
+    );
+    event Delegate(address indexed staking, address indexed validator, uint256 amount);
+    event ValidatorWithdrawal(address indexed staking, address indexed validator, uint256 amount);
 ```
 
-Visit http://localhost:8080 to see the GraphQL Playground, local password is `testing`.
+## Extra
 
-### Generate files from `config.yaml` or `schema.graphql`
-
-```bash
-pnpm codegen
-```
-
-### Pre-requisites
-
-- [Node.js (use v18 or newer)](https://nodejs.org/en/download/current)
-- [pnpm (use v8 or newer)](https://pnpm.io/installation)
-- [Docker desktop](https://www.docker.com/products/docker-desktop/)
+-   [ ] Figure out how StakingAccountant fits
+-   [ ] Earn & vkHYPE
+-   [ ] Any active iHYPE or HIP-3 deployments (on testnet, is anyone trying it with Kinetiq)
+-   [ ] Create metrics list that needs to be tracked on dashboard
+-   [ ] Wireframe for dashboard
