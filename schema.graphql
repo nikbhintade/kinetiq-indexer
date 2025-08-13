@@ -1,5 +1,18 @@
+# user token balance
 type User {
-  id: ID!
-  balance: BigInt!
-  balancePrecision: Float!
+    id: ID!
+    balance: BigInt!
+    balancePrecision: Float!
+}
+
+# token total supply snapshot per block
+type TotalSupplySnapshot {
+    id: ID!
+    blockNumber: Int!
+    totalSupply: BigInt!
+}
+
+type Storage {
+    id: ID!
+    lastBlockNumber: Int!
 }

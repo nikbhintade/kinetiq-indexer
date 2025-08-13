@@ -33,3 +33,5 @@ build
 *.res.mjs
 generated
 .env
+coverage
+.nyc_output

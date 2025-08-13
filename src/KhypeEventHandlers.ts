@@ -1,43 +1,65 @@
-import { KHYPE, User } from "generated";
+import { KHYPE, Storage, User } from "generated";
+import { storageID } from "./constants";
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+function safeStringify(obj: any) {
+    return JSON.stringify(
+        obj,
+        (_k, v) => typeof v === "bigint" ? `${v.toString()}n` : v,
+    );
+}
 
 KHYPE.Transfer.handler(async ({ event, context }) => {
-    const amount = event.params.value;
-    const zeroAddress = "0x0000000000000000000000000000000000000000";
+    const { from, to, value } = event.params;
 
-    const from = event.params.from;
-    const to = event.params.to;
+    // get last block from storage
+    let storage = await context.Storage.getOrCreate({
+        id: storageID,
+        lastBlockNumber: event.block.number,
+    });
 
-    const sender = await context.User.get(from);
-    const receiver = await context.User.get(to);
+    // get the last snapshot if there isn't one create it
+    const lastSnapshot = await context.TotalSupplySnapshot.getOrCreate({
+        id: storage.lastBlockNumber.toString(),
+        blockNumber: storage.lastBlockNumber,
+        totalSupply: BigInt(0),
+    });
 
-    // Update sender balance only if not zero address
-    if (from !== zeroAddress) {
-        if (sender) {
-            context.User.set({
-                ...sender,
-                balance: sender.balance - amount,
+    // snapshot only needs to be updated if the transfer is from or to the zero address
+    if (from === ZERO_ADDRESS || to === ZERO_ADDRESS) {
+        let updatedTotalSupply;
+
+        // if the transfer is from the zero address, it means tokens are being minted
+        // if the transfer is to the zero address, it means tokens are being burned
+        if (from === ZERO_ADDRESS) {
+            updatedTotalSupply = lastSnapshot.totalSupply + value;
+        } else {
+            updatedTotalSupply = lastSnapshot.totalSupply - value;
+        }
+
+        // if the storage's last block number is not the same as the current block number,
+        // we need to create a new snapshot for the current block
+        // otherwise, we update the last snapshot
+        if (storage.lastBlockNumber !== event.block.number) {
+            // create a new snapshot for the current block
+            context.TotalSupplySnapshot.set({
+                id: event.block.number.toString(),
+                blockNumber: event.block.number,
+                totalSupply: updatedTotalSupply,
+            });
+
+            // update the storage's last block number
+            context.Storage.set({
+                id: storageID,
+                lastBlockNumber: event.block.number,
             });
         } else {
-            console.warn(`Unexpected non-zero sender: ${from}`);
-            context.User.set({
-                id: from,
-                balance: BigInt(0),
-                balancePrecision: 0,
+            // update the last snapshot with the new total supply
+            context.TotalSupplySnapshot.set({
+                ...lastSnapshot,
+                totalSupply: updatedTotalSupply,
             });
         }
-    }
-
-    // Update receiver balance
-    if (receiver) {
-        context.User.set({
-            ...receiver,
-            balance: receiver.balance + amount,
-        });
-    } else {
-        context.User.set({
-            id: to,
-            balance: amount,
-            balancePrecision: 0,
-        });
     }
 });
