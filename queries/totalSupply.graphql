@@ -1,0 +1,7 @@
+query TotalSupply {
+    TotalSupplySnapshot(limit: 1, order_by: { blockNumber: desc }) {
+        id
+        totalSupply
+        blockNumber
+    }
+}
