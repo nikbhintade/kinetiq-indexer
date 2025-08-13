@@ -16,7 +16,7 @@ networks:
       contracts:
           - name: KHYPE
             address: 0xfD739d4e423301CE9385c1fb8850539D657C296D
-          - name: StakingManager
-            address: 
+          # - name: StakingManager
+          #   address:
 unordered_multichain_mode: true
-preload_handlers: true
+raw_events: true
