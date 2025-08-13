@@ -8,6 +8,7 @@ type User {
 # token total supply snapshot per block
 type TotalSupplySnapshot {
     id: ID!
+    blockNumber: Int!
     totalSupply: BigInt!
 }
 
