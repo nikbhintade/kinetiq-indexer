@@ -1,0 +1,9 @@
+# returns last 1000 snapshots of total supply
+# snapshot is taken every 2.5k blocks
+query TotalSupplySnapshot {
+    TotalSupplySnapshot(limit: 1000, order_by: { blockNumber: desc }) {
+        id
+        totalSupply
+        blockNumber
+    }
+}

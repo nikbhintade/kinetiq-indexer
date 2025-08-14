@@ -1,0 +1,8 @@
+query MintsBurnsPerDay {
+    MintBurnSnapshot(limit: 10) {
+        burns
+        date
+        mints
+        id
+    }
+}

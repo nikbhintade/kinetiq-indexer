@@ -16,3 +16,10 @@ type Storage {
     id: ID!
     lastBlockNumber: Int!
 }
+
+type MintBurnSnapshot {
+    id: ID!
+    date: Int!
+    mints: BigInt!
+    burns: BigInt!
+}

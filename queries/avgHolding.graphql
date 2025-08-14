@@ -1,0 +1,9 @@
+query AvgHolding {
+    User_aggregate {
+        aggregate {
+            avg {
+                balance
+            }
+        }
+    }
+}

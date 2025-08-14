@@ -1,0 +1,6 @@
+query TopHolders {
+    User(order_by: { balance: desc }, limit: 10) {
+        balance
+        id
+    }
+}
