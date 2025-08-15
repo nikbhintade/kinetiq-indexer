@@ -36,6 +36,27 @@ type ValidatorStatus {
     active: Boolean!
 }
 
+# Total delegation to validator from Kinetiq
+type ValidatorDelegations {
+    id: ID!
+    validator: String!
+    totalDelegation: BigInt!
+    totalDelegationPrecision: Float!
+}
+
+
+# Tracking total delegation to validator over time with snapshots
+# Useful to see how delegation changes over time
+type ValidatorDelegationsSnapshot {
+    id: ID!
+    timestamp: Int!
+    validator: String!
+    totalDelegation: BigInt!
+    totalDelegationPrecision: Float!
+}
+
+# This is in case new staking manager comes into picture
+# Kinetiq has institutional staking in the roadmap so this will be useful in future
 type Delegations {
     # ID will be a combination of validator address and staking address
     # id: validator_staking

@@ -1,55 +1,87 @@
 import { StakingManager } from "generated";
 
-StakingManager.Delegate.handler(async ({ event, context }) => {
-    console.log("Delegate event received");
-    const { validator, staking, amount } = event.params;
-    console.log(`Validator: ${validator}`);
+// L1OperationProcessed Event Handler
+// If OperationType is 0 | 1 | 2, then it is a delegation operation
+// If OperationType is 3 | 4, then it is a withdrawal operation
+StakingManager.L1DelegationProcessed.handler(async ({ event, context }) => {
+    // get params from the event
+    const { amount, staking, validator, operationType } = event.params;
 
-    // Create or update the delegation status
-    const delegation = await context.Delegations.getOrCreate({
-        id: `${validator}_${staking}`,
-        validator: validator,
-        staking: staking,
-        delegation: amount,
-        firstDelegatedAt: event.block.timestamp,
-    });
+    // get the validator from db or create a new one if it doesn't exist
+    const validatorDelegation = await context.ValidatorDelegations
+        .getOrCreate({
+            id: `${validator}`,
+            validator: validator,
+            totalDelegation: 0n,
+            totalDelegationPrecision: Number(0) / 1e8, // Assuming 18 decimals for precision
+        });
 
-    // if the delegation was just created, then no need to update
-    // if not then update the delegation amount
-    if (delegation.firstDelegatedAt !== event.block.timestamp) {
+    if (operationType === 0n || operationType === 1n || operationType === 2n) {
+        console.log(
+            `Delegation ${validator} with amount ${amount}`,
+        );
+        // increase delegation if operationType is 0, 1, or 2
         const updatedDelegation = {
-            ...delegation,
-            delegation: delegation.delegation + amount,
+            ...validatorDelegation,
+            totalDelegation: validatorDelegation.totalDelegation + amount,
+            totalDelegationPrecision:
+                validatorDelegation.totalDelegationPrecision +
+                (Number(amount) / 1e8),
         };
 
-        context.Delegations.set(updatedDelegation);
+        // update the validator delegation
+        context.ValidatorDelegations.set(updatedDelegation);
+    } else if (operationType === 3n || operationType === 4n) {
+        console.log(
+            `Withdrawal ${validator} with amount ${amount}`,
+        );
+        // decrease delegation if operationType is 3 or 4
+        const updatedDelegation = {
+            ...validatorDelegation,
+            totalDelegation: validatorDelegation.totalDelegation - amount,
+            totalDelegationPrecision:
+                validatorDelegation.totalDelegationPrecision -
+                (Number(amount) / 1e8),
+        };
+
+        // update the validator delegation
+        context.ValidatorDelegations.set(updatedDelegation);
+    } else {
+        // this should not happen, but just in case
+        console.error(`Unhandled operation type: ${operationType}`);
     }
 });
 
-StakingManager.ValidatorWithdrawal.handler(async ({ event, context }) => {
-    console.log("Validator withdrawal event received");
-    const { validator, staking, amount } = event.params;
+// EmergencyWithdrawalExecuted Event Handler
+StakingManager.EmergencyWithdrawalExecuted.handler(
+    async ({ event, context }) => {
+        // get params from the event
+        const { validator, amount } = event.params;
 
-    // Check if the delegation exists before updating
-    // If it doesn't exist, then throw error and log it
-    // The error shouldn't arise in normal operations, but it's good to handle it gracefully
-    try {
-        // Update the delegation status by reducing the amount
-        const delegation = await context.Delegations.getOrThrow(
-            `${validator}_${staking}`,
-            "Delegation not found",
-        );
+        try {
+            const validatorDelegation = await context.ValidatorDelegations
+                .getOrThrow(
+                    `${validator}`,
+                    "Can't withdraw without delegating to validator first",
+                );
 
-        const updatedDelegation = {
-            ...delegation,
-            delegation: delegation.delegation - amount,
-        };
+            const updatedDelegation = {
+                ...validatorDelegation,
+                totalDelegation: validatorDelegation.totalDelegation - amount,
+                totalDelegationPrecision:
+                    validatorDelegation.totalDelegationPrecision -
+                    (Number(amount) / 1e18),
+            };
 
-        context.Delegations.set(updatedDelegation);
-    } catch (error) {
-        console.error(
-            `Error updating delegation for validator ${validator} and staking ${staking}:`,
-            error,
-        );
-    }
-});
+            // update the validator delegation
+            context.ValidatorDelegations.set(updatedDelegation);
+        } catch (error) {
+            console.error(
+                `Emergency withdrawal for validator without delegation: ${validator}`,
+                error,
+            );
+        }
+    },
+);
+
+
