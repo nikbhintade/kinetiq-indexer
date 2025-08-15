@@ -1,39 +1,29 @@
-// import { Greeter, User } from "generated";
+// import "./handlers/KhypeEventHandlers";
+import "./handlers/ValidatorManager";
+import "./handlers/StakingManager";
 
-// // Handler for the NewGreeting event
-// Greeter.NewGreeting.handler(async ({ event, context }) => {
-//   const userId = event.params.user;
-//   const latestGreeting = event.params.greeting;
-//   const currentUserEntity: User | undefined = await context.User.get(userId);
+import { StakingAccountant, StakingManager } from "generated";
 
-//   // Update or create a new User entity
-//   const userEntity: User = currentUserEntity
-//     ? {
-//       id: userId,
-//       latestGreeting,
-//       numberOfGreetings: currentUserEntity.numberOfGreetings + 1,
-//       greetings: [...currentUserEntity.greetings, latestGreeting],
-//     }
-//     : {
-//       id: userId,
-//       latestGreeting,
-//       numberOfGreetings: 1,
-//       greetings: [latestGreeting],
-//     };
+// StakingManager.L1OperationAggregated.handler(async ({ event, context }) => {
+//     const { staking, validator, addedAmount, operationType, newTotalAmount } =
+//         event.params;
 
-//   context.User.set(userEntity);
-// });
-
-// // Handler for the ClearGreeting event
-// Greeter.ClearGreeting.handler(async ({ event, context }) => {
-//   const userId = event.params.user;
-//   const currentUserEntity: User | undefined = await context.User.get(userId);
-
-//   if (currentUserEntity) {
-//     // Clear the latestGreeting
-//     context.User.set({
-//       ...currentUserEntity,
-//       latestGreeting: "",
+//     context.L1OperationAggregated.set({
+//         id: `${staking}_${event.logIndex}_${event.block.timestamp}`,
+//         staking: staking,
+//         validator: validator,
+//         addedAmount: addedAmount,
+//         operationType: operationType,
+//         newTotalAmount: newTotalAmount,
 //     });
-//   }
 // });
+
+StakingAccountant.StakingManagerAuthorized.handler(
+    async ({ event, context }) => {
+        context.StakingManagerAuthorized.set({
+            id: `${event.logIndex}_${event.block.timestamp}`,
+            manager: event.params.manager,
+            token: event.params.token,
+        });
+    },
+);

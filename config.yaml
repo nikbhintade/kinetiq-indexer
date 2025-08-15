@@ -7,16 +7,41 @@ description: Greeter indexer
 contracts:
     - name: KHYPE
       abi_file_path: ./abis/khype.json
-      handler: ./src/KhypeEventHandlers.ts
+      handler: ./src/EventHandlers.ts
       events:
           - event: Transfer
+    - name: ValidatorManager
+      abi_file_path: ./abis/ValidatorManager.json
+      handler: ./src/EventHandlers.ts
+      events:
+          - event: ValidatorActivated
+          - event: ValidatorDeactivated
+          - event: ValidatorReactivated
+    - name: StakingManager
+      abi_file_path: ./abis/StakingManager.json
+      handler: ./src/EventHandlers.ts
+      events:
+          # validator un/delegation events
+          - event: Delegate
+          - event: ValidatorWithdrawal
+          - event: L1OperationAggregated
+    - name: StakingAccountant
+      abi_file_path: ./abis/StakingAccountant.json
+      handler: ./src/EventHandlers.ts
+      events:
+          # staking account events
+          - event: StakingManagerAuthorized
 networks:
     - id: 645749 # Hyperliquid Mainnet
       start_block: 0
       contracts:
           - name: KHYPE
             address: 0xfD739d4e423301CE9385c1fb8850539D657C296D
-          # - name: StakingManager
-          #   address:
+          - name: ValidatorManager
+            address: 0x4b797A93DfC3D18Cf98B7322a2b142FA8007508f
+          - name: StakingManager
+            address: 0x393D0B87Ed38fc779FD9611144aE649BA6082109
+          - name: StakingAccountant
+            address: 0x9209648Ec9D448EF57116B73A2f081835643dc7A
 unordered_multichain_mode: true
 raw_events: true

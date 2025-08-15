@@ -12,6 +12,12 @@ type TotalSupplySnapshot {
     totalSupply: BigInt!
 }
 
+type TotalSupply {
+    id: ID!
+    totalSupply: BigInt!
+    totalSupplyPrecision: Float!
+}
+
 type Storage {
     id: ID!
     lastBlockNumber: Int!
@@ -22,4 +28,35 @@ type MintBurnSnapshot {
     date: Int!
     mints: BigInt!
     burns: BigInt!
+}
+
+type ValidatorStatus {
+    id: ID!
+    address: String!
+    active: Boolean!
+}
+
+type Delegations {
+    # ID will be a combination of validator address and staking address
+    # id: validator_staking
+    id: ID!
+    validator: String!
+    staking: String!
+    delegation: BigInt!
+    firstDelegatedAt: Int!
+}
+
+type L1OperationAggregated {
+    id: ID!
+    staking: String!
+    validator: String!
+    addedAmount: BigInt!
+    operationType: BigInt!
+    newTotalAmount: BigInt!
+}
+
+type StakingManagerAuthorized {
+    id: ID!
+    manager: String!
+    token: String!
 }
