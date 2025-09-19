@@ -1,14 +1,5 @@
 import { KHYPE, Storage, User } from "generated";
-import { storageID } from "./constants";
-
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-function safeStringify(obj: any) {
-    return JSON.stringify(
-        obj,
-        (_k, v) => typeof v === "bigint" ? `${v.toString()}n` : v,
-    );
-}
+import { storageID, totalSupplyID, ZERO_ADDRESS } from "../constants";
 
 KHYPE.Transfer.handler(async ({ event, context }) => {
     const { from, to, value } = event.params;
@@ -42,25 +33,45 @@ KHYPE.Transfer.handler(async ({ event, context }) => {
         burns: BigInt(0),
     });
 
+    /*//////////////////////////////////////////////////////////////
+                              FLAWED LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    // following logic for total supply snapshot is totally flawed as for snapshot we are taking total supply from the last snapshot
+    // but that would have been updated but we didn't save it so that value is not accurate
+
+    // the snapshot was not accurately representing the total supply at the end of the block. Instead, it was getting updated till next snap shot is taken. That gives us correct current total supply but wrong total supply at the particular block.
+
     // snapshot only needs to be updated if the transfer is from or to the zero address
     if (from === ZERO_ADDRESS || to === ZERO_ADDRESS) {
         let updatedTotalSupply;
 
+        const totalSupply = await context.TotalSupply.getOrCreate({
+            id: totalSupplyID,
+            totalSupply: BigInt(0),
+            totalSupplyPrecision: 0,
+        });
+
         // if the transfer is from the zero address, it means tokens are being minted
         // if the transfer is to the zero address, it means tokens are being burned
         if (from === ZERO_ADDRESS) {
-            updatedTotalSupply = lastTSSnapshot.totalSupply + value;
+            updatedTotalSupply = totalSupply.totalSupply + value;
             context.MintBurnSnapshot.set({
                 ...lastMBSnapshot,
                 mints: lastMBSnapshot.mints + value,
             });
         } else {
-            updatedTotalSupply = lastTSSnapshot.totalSupply - value;
+            updatedTotalSupply = totalSupply.totalSupply - value;
             context.MintBurnSnapshot.set({
                 ...lastMBSnapshot,
                 burns: lastMBSnapshot.burns + value,
             });
         }
+
+        context.TotalSupply.set({
+            ...totalSupply,
+            totalSupply: updatedTotalSupply,
+        });
 
         // if the storage's last block number is not the same as the current block number,
         // we need to create a new snapshot for the current block
@@ -77,12 +88,6 @@ KHYPE.Transfer.handler(async ({ event, context }) => {
             context.Storage.set({
                 id: storageID,
                 lastBlockNumber: event.block.number,
-            });
-        } else {
-            // update the last snapshot with the new total supply
-            context.TotalSupplySnapshot.set({
-                ...lastTSSnapshot,
-                totalSupply: updatedTotalSupply,
             });
         }
     }

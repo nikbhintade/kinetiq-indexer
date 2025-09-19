@@ -47,3 +47,17 @@ Event Handlers:
 -   [ ] Any active iHYPE or HIP-3 deployments (on testnet, is anyone trying it with Kinetiq)
 -   [ ] Create metrics list that needs to be tracked on dashboard
 -   [ ] Wireframe for dashboard
+
+## Notes
+
+-   Get exchange rate:
+
+    -   Need to use `StakedReceived` & `WithdrawalConfirmed` events from Staking Manager and `RewardEventReported` & `SlashingEventReported` from StakingAccountant.
+    -   current total supply / net staked = current total supply / ( sum stake received - sum withdrawal confirmed + all rewards - all slashing)
+
+-   To track delegations to validators, process `L1DelegationProcessed` event
+
+## Issues
+
+-   Total Delegated Amount is not correct right now.
+-   Due to `RewardEventReported` not being emitted in shorter time, calculation for validator delegation are not exact (they are correct based on data available)

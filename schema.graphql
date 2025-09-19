@@ -12,6 +12,12 @@ type TotalSupplySnapshot {
     totalSupply: BigInt!
 }
 
+type TotalSupply {
+    id: ID!
+    totalSupply: BigInt!
+    totalSupplyPrecision: Float!
+}
+
 type Storage {
     id: ID!
     lastBlockNumber: Int!
@@ -22,4 +28,56 @@ type MintBurnSnapshot {
     date: Int!
     mints: BigInt!
     burns: BigInt!
+}
+
+type ValidatorStatus {
+    id: ID!
+    address: String!
+    active: Boolean!
+}
+
+# Total delegation to validator from Kinetiq
+type ValidatorDelegations {
+    id: ID!
+    validator: String!
+    totalDelegation: BigInt!
+    totalDelegationPrecision: Float!
+}
+
+
+# Tracking total delegation to validator over time with snapshots
+# Useful to see how delegation changes over time
+type ValidatorDelegationsSnapshot {
+    id: ID!
+    timestamp: Int!
+    validator: String!
+    totalDelegation: BigInt!
+    totalDelegationPrecision: Float!
+}
+
+# This is in case new staking manager comes into picture
+# Kinetiq has institutional staking in the roadmap so this will be useful in future
+type Delegations {
+    # ID will be a combination of validator address and staking address
+    # id: validator_staking
+    id: ID!
+    validator: String!
+    staking: String!
+    delegation: BigInt!
+    firstDelegatedAt: Int!
+}
+
+type L1OperationAggregated {
+    id: ID!
+    staking: String!
+    validator: String!
+    addedAmount: BigInt!
+    operationType: BigInt!
+    newTotalAmount: BigInt!
+}
+
+type StakingManagerAuthorized {
+    id: ID!
+    manager: String!
+    token: String!
 }
